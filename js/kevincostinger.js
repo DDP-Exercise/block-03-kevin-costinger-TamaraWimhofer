@@ -39,14 +39,78 @@
  *     the scope of his variables and of course, makes use of
  *     event delegation, to keep his event listeners tidied up!
  *
- *     You - 2026-03-25
+ *     Tamara Wimhofer - 2026-04-14
  *******************************************************/
 let sumExpenses = 0; //Use this variable to keep the sum up to date.
 
-function submitForm(e){
-    //TODO: Prevent the default behavior of the submit button.
-    //TODO: Validate the form. If everything is fine, add the expense to the tracker and reset the form.
+const form = document.querySelector("form");
+const dateInput = document.getElementById("date");
+const amountInput = document.getElementById("amount");
+const textInput = document.getElementById("expense");
+const table = document.getElementById("expenses");
+const tableBody = table.querySelector("tbody");
+const sumDisplay= document.getElementById("expenseSum")
+
+/** @param {Number} value **/
+
+function updateSum(value){
+    sumExpenses += value;
+    if(sumExpenses < 0) sumExpenses = 0;
+    sumDisplay.textContent = formatEuro(sumExpenses);
 }
+
+function submitForm(e){
+    //done: Prevent the default behavior of the submit button.
+    e.preventDefault();
+
+    const date = dateInput.value;
+    const amount = parseFloat(amountInput.value);
+    const text = textInput.value.trim();
+
+    if (isEmpty(date)){
+        dateInput.focus();
+        return;
+    }
+    if (isNaN(amount)||amount <0.01){
+        amountInput.focus();
+        return;
+    }
+    if (text.length < 3){
+        textInput.focus();
+        return;
+    }
+    addExpenseRow(date, amount, text);
+
+    updateSum(amount);
+    form.reset();
+}
+    //done: Validate the form. If everything is fine, add the expense to the tracker and reset the form.
+
+function addExpenseRow(date, amount, text){
+    const row = document.createElement("tr");
+
+    row.innerHTML = `
+        <td>${date}</td>
+        <td>${formatEuro(amount)}</td>
+        <td>${text}</td>
+        <td><button class="delete-btn">X</button></td>
+    `;
+    tableBody.appendChild(row);
+}
+
+
+table.addEventListener("click", function(e) {
+    if (e.target.classList.contains("delete-btn")) {
+        const row = e.target.closest("tr");
+        const amountString = row.cells[1].textContent;
+        const amount = parseFloat(amountString.replace(/[^\d,-]/g, '').replace(',', '.'));
+
+        updateSum(-amount);
+        row.remove();
+    }
+});
+
+form.addEventListener("submit", submitForm);
 
 
 /*****************************
